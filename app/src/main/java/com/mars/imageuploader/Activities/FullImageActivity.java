@@ -20,4 +20,10 @@ public class FullImageActivity extends ShellActivity {
         String URL = getIntent().getStringExtra(MessageUtils.INTENT_TAG);
         Picasso.get().load(URL).placeholder(R.drawable.ic_loading).error(R.drawable.ic_error).into(mView);
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+    }
 }

@@ -3,6 +3,9 @@ package com.mars.imageuploader.ExtraUtils;
 
 public class APIUtils {
 
+    public static final String S_NAME = "MarsPlay";
+    public static final String DO_NOT_SHOW_AGAIN = "idk";
+
     public static final String IMAGE_TAG = "parle-g";
     public static final String JSON = ".json";
     public static final String JPEG = ".jpg";

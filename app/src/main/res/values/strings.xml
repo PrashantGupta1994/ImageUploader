@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ImageUploader</string>
+    <string name="details_next_page">Takes you to next page where you can see all the uploaded images. Wait for 30 sec after image upload as cloud takes this time to render image URL.</string>
+    <string name="details_send_image">Allows you to send the selected/cropped/panned image to server.</string>
+    <string name="no_show">Don\'t show me again.</string>
+    <string name="details_attachment">Allows you to select image.</string>
 </resources>

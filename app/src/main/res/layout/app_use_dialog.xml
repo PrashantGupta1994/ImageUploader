@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textColor="@android:color/black"
+        android:text="@string/details_attachment"
+        android:drawableStart="@drawable/ic_attach"
+        android:drawablePadding="10dp"
+        android:layout_gravity="start|center"
+        android:gravity="start|center"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textColor="@android:color/black"
+        android:text="@string/details_send_image"
+        android:drawableStart="@drawable/ic_send"
+        android:drawablePadding="10dp"
+        android:layout_gravity="start|center"
+        android:gravity="start|center"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textColor="@android:color/black"
+        android:text="@string/details_next_page"
+        android:drawableStart="@drawable/ic_next"
+        android:drawablePadding="10dp"
+        android:layout_gravity="start|center"
+        android:gravity="start|center"/>
+
+    <CheckBox
+        android:id="@+id/main_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="@string/no_show"/>
+</LinearLayout>

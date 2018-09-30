@@ -14,10 +14,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpResponse;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.mars.imageuploader.ExtraUtils.APIUtils;
@@ -79,8 +81,11 @@ public class AllImages extends ShellActivity{
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                MessageUtils.toast(AllImages.this, "Something went wrong!\n " +
-                        "If image is uploaded, cloud takes 1 min to process the url through API. So try again after sometime!", 1);
+                NetworkResponse response = error.networkResponse;
+                if (response.statusCode == 404 || response.statusCode == 401 || response.statusCode == 500) {
+                    MessageUtils.toast(AllImages.this, "Something went wrong!\n " +
+                            "If image is uploaded, cloud takes 30 sec. to process the image URL through API. Try again after sometime!", 1);
+                }
             }
         });
         mReq.setTag(TAG);
@@ -96,6 +101,13 @@ public class AllImages extends ShellActivity{
             mRecyclerView.setItemAnimator(new DefaultItemAnimator());
             mRecyclerView.setAdapter(new ImageThumbs(AllImages.this, mImageUrl));
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        mRequestQueue.stop();
+        super.onBackPressed();
+        finish();
     }
 
     @Override

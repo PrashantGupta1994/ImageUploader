@@ -4,8 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,22 +22,22 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.mars.imageuploader.ExtraUtils.APIUtils;
-import com.mars.imageuploader.ImageProcessorUtils.ImageProcessingMethods;
 import com.mars.imageuploader.ExtraUtils.CloudUtils;
 import com.mars.imageuploader.ExtraUtils.MessageUtils;
-import com.mars.imageuploader.ImageProcessorUtils.ImageSizeReducer;
 import com.mars.imageuploader.R;
 import com.mars.imageuploader.Shell.ShellActivity;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
-import java.io.File;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import id.zelory.compressor.Compressor;
+
+import static com.mars.imageuploader.ExtraUtils.APIUtils.S_NAME;
+import static com.mars.imageuploader.ImageProcessorUtils.ImageSizeReducer.compressImage;
+import static com.mars.imageuploader.Shell.AppUseDialog.appUseDialog;
 
 public class ImageActivity extends ShellActivity implements View.OnClickListener{
 
@@ -48,6 +48,8 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
     private ImageButton mNext;
     private LinearLayout mParent;
     private ImageView mImageView;
+
+    public SharedPreferences mSharedPreferences;
 
     private final static int REQUEST_CODE = 101;
     private final String[] mPermissions = {
@@ -64,13 +66,23 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
-        MediaManager.init(this, CloudUtils.getInstance().config());
 
-        mAddImage = findViewById(R.id.main_fab);
-        mSendImage = findViewById(R.id.main_fab_send);
-        mImageView = findViewById(R.id.main_image);
-        mParent = findViewById(R.id.main_buttons);
-        mNext = findViewById(R.id.main_fab_next);
+        initConstants();
+        appUseDialog(mSharedPreferences, this);
+    }
+
+    private void initConstants(){
+        try {
+            MediaManager.init(this, CloudUtils.getInstance().config());
+        }catch (IllegalStateException ignored){
+        }finally {
+            mSharedPreferences = getSharedPreferences(S_NAME, MODE_PRIVATE);
+            mAddImage = findViewById(R.id.main_fab);
+            mSendImage = findViewById(R.id.main_fab_send);
+            mImageView = findViewById(R.id.main_image);
+            mParent = findViewById(R.id.main_buttons);
+            mNext = findViewById(R.id.main_fab_next);
+        }
     }
 
     @Override
@@ -98,7 +110,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
             case R.id.main_fab_send:
                 if (mImageView.getDrawable() != null && mCroppedImageUri != null){
                     MessageUtils.toast(ImageActivity.this, "Processing Image!", 0);
-                    byte[] mArray = ImageSizeReducer.compressImage(mCroppedImageUri);
+                    byte[] mArray = compressImage(mCroppedImageUri);
 
                     mParent.setVisibility(View.GONE);
                     sendImage(mArray);
