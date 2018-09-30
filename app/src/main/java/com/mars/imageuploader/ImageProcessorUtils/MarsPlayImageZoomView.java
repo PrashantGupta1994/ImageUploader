@@ -9,7 +9,9 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
-
+/***
+ * Image view zoom class
+ * */
 public class MarsPlayImageZoomView extends android.support.v7.widget.AppCompatImageView {
     private Matrix matrix;
     private static final int NONE = 0;

@@ -21,7 +21,7 @@ import android.widget.LinearLayout;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
-import com.mars.imageuploader.ExtraUtils.APIUtils;
+import com.mars.imageuploader.ExtraUtils.ConnectionUtils;
 import com.mars.imageuploader.ExtraUtils.CloudUtils;
 import com.mars.imageuploader.ExtraUtils.MessageUtils;
 import com.mars.imageuploader.R;
@@ -35,14 +35,15 @@ import java.util.List;
 import java.util.Map;
 
 
-import static com.mars.imageuploader.ExtraUtils.APIUtils.S_NAME;
+import static com.mars.imageuploader.ExtraUtils.ConnectionUtils.S_NAME;
+import static com.mars.imageuploader.ExtraUtils.ConnectionUtils.isConnected;
 import static com.mars.imageuploader.ImageProcessorUtils.ImageSizeReducer.compressImage;
 import static com.mars.imageuploader.Shell.AppUseDialog.appUseDialog;
 
 public class ImageActivity extends ShellActivity implements View.OnClickListener{
 
+    // constants
     private Uri mCroppedImageUri = null;
-
     private ImageButton mAddImage;
     private ImageButton mSendImage;
     private ImageButton mNext;
@@ -57,6 +58,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    // allows fullscreen
     @Override
     public void makeWindowFullScreen() {
         super.makeWindowFullScreen();
@@ -67,6 +69,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
 
+        // initiate constants and display app use dialog
         initConstants();
         appUseDialog(mSharedPreferences, this);
     }
@@ -89,6 +92,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
     protected void onStart() {
         super.onStart();
 
+        // add click listeners on buttons
         mAddImage.setOnClickListener(this);
         mSendImage.setOnClickListener(this);
         mNext.setOnClickListener(this);
@@ -98,6 +102,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.main_fab:
+                // ask permission if > M and start chooser dialog
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if(arePermissionsEnabled()){
                         CropImage.startPickImageActivity(ImageActivity.this);
@@ -108,23 +113,26 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
                 break;
 
             case R.id.main_fab_send:
-                if (mImageView.getDrawable() != null && mCroppedImageUri != null){
+                // check for cropped image and call upload
+                if (mImageView.getDrawable() != null && mCroppedImageUri != null && isConnected(this)){
                     MessageUtils.toast(ImageActivity.this, "Processing Image!", 0);
                     byte[] mArray = compressImage(mCroppedImageUri);
 
                     mParent.setVisibility(View.GONE);
                     sendImage(mArray);
                 }else {
-                    MessageUtils.toast(ImageActivity.this, "No images available!", 0);
+                    MessageUtils.toast(ImageActivity.this, "Connection or Image unavailable!", 0);
                 }
                 break;
 
             case R.id.main_fab_next:
+                // start image thumbnail activity
                 startActivity(new Intent(ImageActivity.this, AllImages.class));
                 break;
         }
     }
 
+    // check if permissions are granted
     @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean arePermissionsEnabled(){
         for(String permission : mPermissions){
@@ -134,10 +142,10 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
         return true;
     }
 
+    // ask multiple permissions
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestMultiplePermissions(){
         List<String> remainingPermissions = new ArrayList<>();
-
         for (String permission : mPermissions) {
             if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
                 if (shouldShowRequestPermissionRationale(permission)){
@@ -155,24 +163,23 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        /** handle result of pick image chooser */
+        // handle result of pick image chooser
         if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             Uri imageUri = CropImage.getPickImageResultUri(this, data);
             startCropImageActivity(imageUri);
         }
 
-        /** handle result of CropImageActivity */
+        // handle result of CropImageActivity
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
                 mCroppedImageUri = result.getUri();
                 mImageView.setImageURI(mCroppedImageUri);
-            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                MessageUtils.toast(this, "Cropping failed: " + result.getError(), 0);
             }
         }
     }
 
+    // check permission result
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
@@ -185,6 +192,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
         }
     }
 
+    // show rational permission dialog
     private void showRequestPermissionRationaleDialog(){
         new AlertDialog.Builder(this)
                 .setMessage("Permissions needed to use application features.")
@@ -200,10 +208,12 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
                         dialog.dismiss();
                     }
                 })
+                .setCancelable(false)
                 .create()
                 .show();
     }
 
+    // start app's system default permission setting page
     private void startAppSettingsConfigActivity() {
         startActivity(new Intent()
                 .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -215,6 +225,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
         );
     }
 
+    // show crop/zoom/pan activity after image chooser activity result
     private void startCropImageActivity(Uri imageUri) {
         CropImage.activity(imageUri)
                 .setGuidelines(CropImageView.Guidelines.ON)
@@ -222,8 +233,9 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
                 .start(this);
     }
 
+    // send image to cloud using async MediaManager with callback to keep track
     private void sendImage(byte[] arr){
-        MediaManager.get().upload(arr).option("tags", APIUtils.IMAGE_TAG).callback(new UploadCallback() {
+        MediaManager.get().upload(arr).option("tags", ConnectionUtils.IMAGE_TAG).callback(new UploadCallback() {
             @Override
             public void onStart(String requestId) {
                 MessageUtils.toast(ImageActivity.this, "Uploading Image!", 0);
@@ -235,7 +247,7 @@ public class ImageActivity extends ShellActivity implements View.OnClickListener
 
             @Override
             public void onSuccess(String requestId, Map resultData) {
-                MessageUtils.toast(ImageActivity.this, "File Uploaded!", 0);
+                MessageUtils.toast(ImageActivity.this, "Image Uploaded!", 0);
                 mImageView.setImageURI(null);
                 mParent.setVisibility(View.VISIBLE);
             }

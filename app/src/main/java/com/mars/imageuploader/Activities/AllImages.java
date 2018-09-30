@@ -14,15 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.HttpResponse;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.mars.imageuploader.ExtraUtils.APIUtils;
+import com.mars.imageuploader.ExtraUtils.ConnectionUtils;
 import com.mars.imageuploader.ImageProcessorUtils.ImageProcessingMethods;
 import com.mars.imageuploader.ExtraUtils.MessageUtils;
 import com.mars.imageuploader.R;
@@ -37,8 +35,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mars.imageuploader.ExtraUtils.ConnectionUtils.isConnected;
+
 public class AllImages extends ShellActivity{
 
+    // constants
     private final static String TAG = AllImages.class.getSimpleName();
 
     private RecyclerView mRecyclerView;
@@ -50,10 +51,15 @@ public class AllImages extends ShellActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_images);
 
+        // init constants and others
         mRecyclerView = findViewById(R.id.main_list);
         mRequestQueue = Volley.newRequestQueue(this);
 
-        getDataFromCloud();
+        // get image URLs from cloud
+        if (isConnected(this))
+            getDataFromCloud();
+        else
+            MessageUtils.toast(this, "No connection available!", 1);
     }
 
     @Override
@@ -61,8 +67,23 @@ public class AllImages extends ShellActivity{
         super.onStart();
     }
 
+    /**
+     *  Get image URLs from cloud using JsonObject request
+        Sample date below -
+     {
+     "resources": [
+     {
+     "public_id": "mxudzvbexfn10dtl2xzs",
+     "version": 1538306390,
+     "format": "jpg",
+     "width": 960,
+     "height": 1280,
+     "type": "upload",
+     "created_at": "2018-09-30T11:19:50Z"
+     }
+     **/
     private void getDataFromCloud(){
-        JsonObjectRequest mReq = new JsonObjectRequest(Request.Method.GET, APIUtils.URL_DOWNLOAD_IMAGE_ID, new JSONObject(), new Response.Listener<JSONObject>() {
+        JsonObjectRequest mReq = new JsonObjectRequest(Request.Method.GET, ConnectionUtils.URL_DOWNLOAD_IMAGE_ID, new JSONObject(), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -71,7 +92,7 @@ public class AllImages extends ShellActivity{
                     for (int a = 0; a < mArray.length(); a++){
                         mObject = mArray.getJSONObject(a);
                         String ID = mObject.getString("public_id");
-                        mImageUrl.add(ID.equals("") ? "NA" : APIUtils.URL_DOWNLOAD_IMAGE + ID + APIUtils.JPEG);
+                        mImageUrl.add(ID.equals("") ? "NA" : ConnectionUtils.URL_DOWNLOAD_IMAGE + ID + ConnectionUtils.JPEG);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, e.toString());
@@ -81,17 +102,15 @@ public class AllImages extends ShellActivity{
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                NetworkResponse response = error.networkResponse;
-                if (response.statusCode == 404 || response.statusCode == 401 || response.statusCode == 500) {
-                    MessageUtils.toast(AllImages.this, "Something went wrong!\n " +
+                MessageUtils.toast(AllImages.this, "Something went wrong!\n " +
                             "If image is uploaded, cloud takes 30 sec. to process the image URL through API. Try again after sometime!", 1);
-                }
             }
         });
         mReq.setTag(TAG);
         mRequestQueue.add(mReq);
     }
 
+    // fill data to list after list check
     private void updateGridImages(List<?> mList){
         if (!mList.isEmpty()) {
             int mColumn = ImageProcessingMethods.calculateNoOfColumns(this);
@@ -105,11 +124,11 @@ public class AllImages extends ShellActivity{
 
     @Override
     public void onBackPressed() {
-        mRequestQueue.stop();
         super.onBackPressed();
         finish();
     }
 
+    // remove callbacks or streams
     @Override
     protected void onDestroy() {
         mRequestQueue.cancelAll(TAG);
@@ -117,6 +136,7 @@ public class AllImages extends ShellActivity{
         super.onDestroy();
     }
 
+    // RecyclerView for image thumbnails
     private class ImageThumbs extends RecyclerView.Adapter<ImageThumbs.ViewHolder>{
 
         private Context context;
@@ -167,6 +187,9 @@ public class AllImages extends ShellActivity{
         }
     }
 
+    /** spacing for grid.
+     *  Taken from - @auther from Github
+     */
     public class SpacingItemDecoration extends RecyclerView.ItemDecoration {
 
         private int column;

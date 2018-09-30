@@ -3,9 +3,6 @@ package com.mars.imageuploader.Shell;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
 import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -14,10 +11,11 @@ import com.mars.imageuploader.R;
 
 import java.lang.ref.WeakReference;
 
-import static com.mars.imageuploader.ExtraUtils.APIUtils.DO_NOT_SHOW_AGAIN;
+import static com.mars.imageuploader.ExtraUtils.ConnectionUtils.DO_NOT_SHOW_AGAIN;
 
 public class AppUseDialog {
 
+    // First time app use dialog display logic
     public static void appUseDialog(SharedPreferences s, Context context) {
         Context c = new WeakReference<>(context).get();
         if (!s.getBoolean(DO_NOT_SHOW_AGAIN, false)){
@@ -25,7 +23,7 @@ public class AppUseDialog {
         }
     }
 
-
+    // dialog
     private static void initialDialog(SharedPreferences s, Context c){
         Dialog dialog = new Dialog(c);
         final SharedPreferences.Editor mEditor = s.edit();

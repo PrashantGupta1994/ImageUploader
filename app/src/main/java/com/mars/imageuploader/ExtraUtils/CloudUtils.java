@@ -5,6 +5,9 @@ import java.util.Map;
 
 
 public class CloudUtils {
+    /**
+     * Cloud access key and name
+     * */
     private static CloudUtils Instance;
 
     public static synchronized CloudUtils getInstance() {
@@ -19,9 +22,9 @@ public class CloudUtils {
 
     public Map config(){
         Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", APIUtils.CLOUD_NAME);
-        config.put("api_key", APIUtils.CLOUD_KEY);
-        config.put("api_secret", APIUtils.CLOUD_SECRET);
+        config.put("cloud_name", ConnectionUtils.CLOUD_NAME);
+        config.put("api_key", ConnectionUtils.CLOUD_KEY);
+        config.put("api_secret", ConnectionUtils.CLOUD_SECRET);
         return config;
     }
 }

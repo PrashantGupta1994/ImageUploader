@@ -10,6 +10,8 @@ import android.app.Application;
 
 public class Shell extends Application {
 
+    // Application class for Memory leak test
+    // NaN
     @Override
     public void onCreate() {
         super.onCreate();

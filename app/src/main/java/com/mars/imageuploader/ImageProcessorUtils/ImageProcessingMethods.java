@@ -10,13 +10,14 @@ import java.lang.ref.WeakReference;
 
 public class ImageProcessingMethods {
 
+    // convert bitmap to byte array for cloud
     public static byte[] bytes(Bitmap mB){
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         mB.compress(Bitmap.CompressFormat.JPEG, 40, stream);
-        //mB.recycle();
         return stream.toByteArray();
     }
 
+    // calculate number of grid according to screen size.
     public static int calculateNoOfColumns(Context ctx) {
         Context context = new WeakReference<>(ctx).get();
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();

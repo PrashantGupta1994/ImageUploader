@@ -8,6 +8,9 @@ import java.lang.ref.WeakReference;
 
 public class MessageUtils {
 
+    /**
+     * Message and intent name helper.
+     * */
     public static final String INTENT_TAG = "URL";
 
     public static void toast(Context context, CharSequence chars, int mLength){

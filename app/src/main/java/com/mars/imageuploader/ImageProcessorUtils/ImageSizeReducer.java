@@ -11,6 +11,10 @@ import android.net.Uri;
 
 public class ImageSizeReducer {
 
+    // Compress image taken from crp activity to reduce size.
+    // Max bitmap output -> 1280 X 1080
+    /** @auther from Github*/
+
     public static byte[] compressImage(Uri imageUri) {
         String filePath = imageUri.getPath();
 
